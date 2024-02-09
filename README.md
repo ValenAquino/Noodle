@@ -1,30 +1,53 @@
-QMP 8
-====
+# Noodle
 
-Llegó el momento tan ansiado: ¡construir la interfaz de QMP! Basándonos en los requerimientos de [QMP7](https://docs.google.com/document/d/1ERlDghk47Yc1_V1SQ7oCnZAC4bubHx7ZhQXS3naKMJA/edit), queremos:
+En estos tiempos de pandemia y clases remotas, contar con una herramienta para la correcta gestión de aulas virtuales es esencial. Por eso es que Tío Molinas, una conocida marca de galletitas y pastas secas en busca de diversificación ha decidido encargar a 2Diseños la creación de un nuevo software para entornos educativos, totalmente innovador y para nada parecido a Moodle: Noodle.
 
-* Como usuarie de QueMePongo, quiero poder entrar a `/` y encontrar una breve descripción del sitio
-* Como usuarie de QueMePongo, desde `/` quiero contar con un botón de login, que me permita iniciar sesión
-  * Nota: inicialmente no nos interesará contar con un botón de creación de cuenta, sólo iniciaremos sesión con cuentas existentes
-* Como usuarie de QueMePongo, tras realizar el login, deseo llego a `/guardarropas`, donde encontraré un listado de todos mis guardarropas
-* Como usuarie de QueMePongo, desde `/guardarropas`, deseo poder navegar a `/guardarropas/:id`, donde encontraré el detalle del guardarropas y el listado de prendas que contiene.
-* **Bonus**:  Como usuario de QueMePongo, quiero poder empezar a crear una prenda en mi guardarropas desde el detalle del guardarropa.
-* **Bonus**: Como usuarie de QueMePongo quiero poder seleccionar una prenda desde el detalle del guardarropas y navegar hacia `/prendas/:id`, donde encontraré el detalle de la misma.
-* **Bonus**: Como usuarie de QueMePongo, quiero poder eliminar una prenda desde el detalle de la misma.
+## Contexto
 
-En este repositorio encontrarás las clases `Guardarropa`, `Prenda`, `Usuario` y `Color`. Las mismas ya están anotadas y listas para ser usadas.
+Según nos cuenta la gente de Tío Molinas, la primera iteración de Noodle consistirá en el Módulo de Grupos: necesitan una aplicación que le permita a un docente gestionar el armado de grupos de estudiantes y sus integrantes, así como las asignaciones que les son dadas (exámenes, trabajos prácticos, etc).
 
-## Nota de clase
+## Integrantes
 
-Estamos trabajando en aulas partidas en este ejercicio:
+En primer lugar, nos comentan que el sistema deberá permitirle al docente configurar un tamaño ideal para los grupos, y una vez alcanzado el grupo podrá cerrarse y comenzar a recibir asignaciones.
 
-https://github.com/dds-utn/jpa-proof-of-concept-template/tree/qmp-web
+Existen casos donde el tamaño ideal puede ser ignorado por el docente (por ejemplo, porque el tamaño ideal no es divisor exacto de la cantidad de estudiantes del curso). En estos casos, el docente podrá cerrar al grupo ignorando este tamaño, pero ello deberá ser aprobado por un segundo docente. De igual forma, una vez que el grupo es finalmente cerrado, cualquier adición o remoción de integrantes también debe ser aprobada por otro docente.
 
-Elijan un aula de su gusto (idealmente, mínimo de a dos personas) y comiencen a trabajar en el ejercicio
-Iremos pasando por las aulas durante la clase.
-Sugerencia:
-  - dejar el login para el final.
-  - concentrarse en, primero, la navegación, y segundo, en la UI y usabilidad
+En Tío Molinas nos comentan que tal vez quieran permitir a futuro otros cambios más allá de recibir o perder integrantes y ser cerrado. Por ejemplo, quizás les interesaría eliminar un grupo o volver a abrirlo, si es que las pruebas de usuario muestran que esta necesidad es frecuente, aunque no están seguros de que finalmente suceda.
 
-Después de clase, no se olviden de ver el video de manejo de sesión y transacciones
-que está subido a la clase de hoy en el webcampus. 
+## Tareas
+
+Durante la vida de un grupo, hay diferentes tareas asociadas a los cambios que este sufra. En concreto, al cerrar un grupo se desea crear un repositorio en el sitio Guitab.com dándole acceso a todos sus miembros. Del mismo modo, cada vez que un integrante se inscriba o dé de baja de un grupo, se debe notificar a todos los integrantes existentes del mismo por mail. Si el grupo ya estaba cerrado, se deberá, además, dar o quitar permisos a dicho integrante del repositorio de Guitab.
+Estas tareas deben ser configurables por un administrador y es probable que varíen mucho a futuro. Por ejemplo, se está pensando darlos de alta en un excel, notificar al docente asignado, darles la primera asignación automáticamente, etc.
+
+## Asignaciones
+
+Finalmente, nuestra aplicación deberá ser capaz de darle acceso a los distintos grupos a diferentes asignaciones. Por el momento, las asignaciones son solo Trabajos Prácticos y Actividades de Clase.
+
+Las asignaciones se identifican mediante un título, y pueden tener una o varias entregas semanales. Cada entrega está enlazada mediante una URL que se le comparte a los estudiantes.
+
+Para facilitar el trabajo docente, se desea automatizar el dar acceso a diferentes entregas semanales. Esto implica que, si una asignación tiene varias entregas, una vez por semana deberán ser habilitadas, en orden, para los diferentes grupos cerrados, y cada integrante del grupo deberá recibir un mail.
+
+## Requerimientos detallados:
+
+1. Como docente, deseo poder crear N grupos de trabajo de un tamaño ideal M, vacíos, para permitir la inscripción de estudiantes a cada grupo.
+
+2. Como estudiante, deseo poder inscribirme o darme de baja instantáneamente de un grupo abierto.
+3. Como estudiante, deseo recibir una notificación por correo electrónico cada vez que alguien se inscribe o se da de baja de mi grupo de trabajo.
+4. Como docente, deseo poder cerrar un grupo que tiene tamaño M.
+5. Como docente, deseo que cuando un grupo sea cerrado, se cree el repositorio correspondiente en Guitab.
+6. Como docente, deseo poder aprobar o rechazar el intento de otro docente de cerrar un grupo que no es de tamaño M.
+7. Como estudiante, quiero solicitar inscribirme o darme de baja de un grupo cerrado.
+8. Como docente, quiero poder aprobar o rechazar la solicitud de alta o baja de un estudiante para un grupo cerrado.
+9. Como docente, deseo que al incluir o eliminar un estudiante de un grupo cerrado, este reciba o pierda los accesos al repositorio del equipo.
+10. Como administrador, deseo poder configurar qué tareas se ejecutan cuando se realiza un cambio sobre un grupo.
+11. Como docente, quiero poder crear asignaciones con una o varias entregas.
+12. Como docente, deseo que el sistema le dé automáticamente acceso a los estudiantes a cada entrega a medida que las semanas de cursada transcurren.
+
+
+#### Se cuenta con el SDK del sitio Guitab, el cual expone la siguiente interfaz:
+
+![Interfaz del SDK de Guitab](https://www.plantuml.com/plantuml/img/oymhIIrAIqnELN0lpIn9J0fsyQxcKb18BafDB0fABSWlpYp9ByhCTyxFSqnEJYtEBzO8BYdAp4jNoClFJIfArL7moImkiO68sIcK5gSMvINcfXPh0ir8IIo2w47L0Z9LHm4g1DEWoLK8ifuK3RLSN000)
+
+#### Asimismo, para enviar mails se cuenta con la siguiente biblioteca:
+
+![Biblioteca para enviar correos electrónicos](https://www.plantuml.com/plantuml/img/Iyv9B2vMy4tCp0bEpKj9BQhcKYW6CZGIKrAAKekBTHIAIvEoKfDBT1IIybCgDRbg0G00)
