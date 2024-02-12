@@ -5,6 +5,7 @@ import domain.adapters.Guitab;
 import domain.solicitudes.Solicitud;
 import domain.solicitudes.SolicitudAlta;
 import domain.solicitudes.SolicitudBaja;
+import domain.solicitudes.SolicitudCierre;
 import domain.tareas.AdministradorDeRepositorios;
 import domain.tareas.NotificadorDeCambios;
 import domain.tareas.Tarea;
@@ -92,13 +93,104 @@ public class GrupoTest {
   }
 
   @Test
-  public void cuandoSeIntentaCerrarUnGrupoDeTamanioMenorFalla() {
+  public void cuandoSeIntentaCerrarUnGrupoDeTamanioMenorCreaUnaSolicitud() {
     Grupo grupo = new Grupo(2, tareas);
+    Estudiante estudiante = new Estudiante("Juan", "juan@gmail.com");
+    Docente docente = new Docente("Franco", "franco@gmail.com");
+
+    grupo.inscribir(estudiante);
+    grupo.cerrar(docente);
+
+    assertInstanceOf(SolicitudCierre.class, grupo.solicitudes.get(0));
+  }
+
+  // 4)
+  // Como docente, deseo poder cerrar un grupo que tiene tamaño M
+  @Test
+  public void sePuedeCerrarUnGrupoDeTamanioM() {
+    Docente docente = new Docente("Franco", "franco@gmail.com");
+
+    Grupo grupo = new Grupo(1, tareas);
     Estudiante estudiante = new Estudiante("Juan", "juan@gmail.com");
 
     grupo.inscribir(estudiante);
+    grupo.cerrar(docente);
 
-    assertThrows(IllegalStateException.class, grupo::cerrar);
+    assertTrue(grupo.estaCerrado);
+  }
+
+  // 6)
+  //Como docente, deseo poder aprobar o rechazar el intento de otro docente de cerrar un grupo
+  // que no es de tamaño M.
+  @Test
+  public void sePuedeCerrarUnGrupoQueNoEsDeTamanioMConSolicitud() {
+    Docente docente = new Docente("Franco", "franco@gmail.com");
+    Docente docente2 = new Docente("Gaston", "gaston@gmail.com");
+
+    Grupo grupo = new Grupo(1, tareas);
+    Estudiante estudiante = new Estudiante("Juan", "juan@gmail.com");
+    grupo.cerrar(docente);
+    grupo.inscribir(estudiante);
+
+    grupo.getSolicitudes().get(0).aceptar(docente2, grupo); // se resuelve la solicitud
+
+    assertTrue(grupo.estaCerrado);
+  }
+
+  // 7)
+  // Como estudiante, quiero solicitar inscribirme o darme de baja de un grupo cerrado.
+  @Test
+  public void sePuedeCrearLaSolicitudDeAltaYbajaAunGrupoCerrado() {
+    Docente docente = new Docente("Franco", "franco@gmail.com");
+
+    Grupo grupo = new Grupo(1, tareas);
+    Estudiante estudiante = new Estudiante("Juan", "juan@gmail.com");
+    Estudiante estudiante2 = new Estudiante("Mark", "mark@gmail.com");
+
+    grupo.inscribir(estudiante);
+    grupo.cerrar(docente);
+
+    grupo.inscribir(estudiante2); // se crea la solicitud de alta
+    grupo.darDeBaja(estudiante); // se crea la solicitud de baja
+
+    assertEquals(2, grupo.getSolicitudes().size());
+  }
+
+  // 8)
+  // Como docente, quiero poder aprobar o rechazar la solicitud de alta o baja de un estudiante
+  // para un grupo cerrado.
+  @Test
+  public void sePuedeInscribirEnUnGrupoCerradoConSolicitud() {
+    Docente docente = new Docente("Franco", "franco@gmail.com");
+
+    Grupo grupo = new Grupo(1, tareas);
+    Estudiante estudiante = new Estudiante("Juan", "juan@gmail.com");
+    Estudiante estudiante2 = new Estudiante("Mark", "mark@gmail.com");
+
+    grupo.inscribir(estudiante);
+    grupo.cerrar(docente);
+
+    grupo.inscribir(estudiante2);
+    grupo.getSolicitudes().get(0).aceptar(docente, grupo); // se resuelve la solicitud
+
+    assertTrue(grupo.integrantes.contains(estudiante2));
+  }
+
+  @Test
+  public void sePuedeRechazarInscribirEnUnGrupoCerradoConSolicitud() {
+    Docente docente = new Docente("Franco", "franco@gmail.com");
+
+    Grupo grupo = new Grupo(1, tareas);
+    Estudiante estudiante = new Estudiante("Juan", "juan@gmail.com");
+    Estudiante estudiante2 = new Estudiante("Mark", "mark@gmail.com");
+
+    grupo.inscribir(estudiante);
+    grupo.cerrar(docente);
+
+    grupo.inscribir(estudiante2);
+    grupo.getSolicitudes().get(0).rechazar(); // se rechaza la solicitud
+
+    assertFalse(grupo.integrantes.contains(estudiante2));
   }
 
   // 5)
@@ -111,33 +203,10 @@ public class GrupoTest {
 
     grupo.inscribir(estudiante);
     grupo.setNombreRepo("grupo");
-    grupo.cerrar();
+    grupo.aplicarCierre();
 
     verify(guitabSdkMock, times(1))
         .crearRepositoriosConAccesos(anyString(), anyList());
-  }
-
-  @Test
-  public void cuandoSeIntentaAgregarIntegrantesAunGrupoCerradoFalla() {
-    Grupo grupo = new Grupo(1, tareas);
-    Estudiante estudiante = new Estudiante("Juan", "juan@gmail.com");
-    Estudiante estudiante2 = new Estudiante("Mark", "mark@gmail.com");
-
-    grupo.inscribir(estudiante);
-    grupo.cerrar();
-
-    assertThrows(IllegalStateException.class, () -> grupo.inscribir(estudiante2));
-  }
-
-  @Test
-  public void cuandoSeIntentaQuitarIntegrantesAunGrupoCerradoFalla() {
-    Grupo grupo = new Grupo(1, tareas);
-    Estudiante estudiante = new Estudiante("Juan", "juan@gmail.com");
-
-    grupo.inscribir(estudiante);
-    grupo.cerrar();
-
-    assertThrows(IllegalStateException.class, () -> grupo.darDeBaja(estudiante));
   }
 
   // 9)
@@ -151,10 +220,10 @@ public class GrupoTest {
     Estudiante estudiante = new Estudiante("Juan", "juan@gmail.com");
 
     grupo.setNombreRepo("grupo");
-    grupo.cerrar();
+    grupo.cerrar(docente);
 
-    Solicitud alta = new SolicitudAlta(estudiante, grupo);
-    alta.aceptar(docente);
+    grupo.inscribir(estudiante);
+    grupo.getSolicitudes().get(0).aceptar(docente, grupo); // se resuelve la solicitud
 
     verify(guitabSdkMock, times(1))
         .darAcceso(anyString(), anyString());
@@ -171,12 +240,12 @@ public class GrupoTest {
 
     grupo.setNombreRepo("grupo");
     grupo.inscribir(estudiante);
-    grupo.cerrar();
+    grupo.cerrar(docente);
 
     assertTrue(estudiante.tieneRepositorio(grupo.nombreRepo));
 
-    Solicitud baja = new SolicitudBaja(estudiante, grupo);
-    baja.aceptar(docente);
+    grupo.darDeBaja(estudiante);
+    grupo.getSolicitudes().get(0).aceptar(docente, grupo); // se resuelve la solicitud
 
     verify(guitabSdkMock, times(1))
         .quitarAcceso(anyString(), anyString());
