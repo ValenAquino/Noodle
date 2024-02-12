@@ -1,6 +1,11 @@
 package domain;
 
+import domain.solicitudes.Solicitud;
+import domain.solicitudes.SolicitudAlta;
+import domain.solicitudes.SolicitudBaja;
+import domain.solicitudes.SolicitudCierre;
 import domain.tareas.Tarea;
+import domain.usuarios.Docente;
 import domain.usuarios.Estudiante;
 
 import java.util.ArrayList;
@@ -12,6 +17,7 @@ public class Grupo {
   public boolean estaCerrado = false;
   List<Tarea> tareas;
   List<String> entregas = new ArrayList<>();
+  List<Solicitud> solicitudes = new ArrayList<>();
 
   public List<Estudiante> integrantes = new ArrayList<>();
 
@@ -36,36 +42,35 @@ public class Grupo {
   }
 
   public void inscribir(Estudiante estudiante) {
-    if (estaCerrado) {
-      throw new IllegalStateException("El grupo está cerrado");
-    }
-
-    if (integrantes.size() >= limiteIntegrantes) {
-      throw new IllegalStateException("El grupo está lleno");
+    if (estaCerrado || integrantes.size() >= limiteIntegrantes) {
+      solicitudes.add(new SolicitudAlta(estudiante));
+      return;
     }
 
     aplicarAlta(estudiante);
   }
 
   public void darDeBaja(Estudiante estudiante) {
-    if (estaCerrado) {
-      throw new IllegalStateException("El grupo está cerrado");
-    }
-
     if (!integrantes.contains(estudiante)) {
       throw new IllegalStateException("El estudiante no está inscripto en el grupo");
+    }
+
+    if (estaCerrado) {
+      solicitudes.add(new SolicitudBaja(estudiante));
+      return;
     }
 
     aplicarBaja(estudiante);
   }
 
-  public void cerrar() {
+  public void cerrar(Docente docente) {
     if (estaCerrado) {
       throw new IllegalStateException("El grupo ya está cerrado");
     }
 
     if (noSePuedeCerrar()) {
-      throw new IllegalStateException("El grupo no se puede cerrar");
+      solicitudes.add(new SolicitudCierre(docente));
+      return;
     }
 
     aplicarCierre();
@@ -82,5 +87,9 @@ public class Grupo {
   public void recibirEntrega(String nombreEntrega) {
     entregas.add(nombreEntrega);
     tareas.forEach(tarea -> tarea.notificarEntrega(this, nombreEntrega));
+  }
+
+  public List<Solicitud> getSolicitudes() {
+    return solicitudes;
   }
 }
