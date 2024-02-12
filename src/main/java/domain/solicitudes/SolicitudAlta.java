@@ -6,15 +6,13 @@ import domain.usuarios.Estudiante;
 
 public class SolicitudAlta extends Solicitud {
   Estudiante estudiante;
-  Grupo grupo;
 
-  public SolicitudAlta(Estudiante estudiante, Grupo grupo) {
+  public SolicitudAlta(Estudiante estudiante) {
     this.estudiante = estudiante;
-    this.grupo = grupo;
   }
 
   @Override
-  public void aplicar(Docente docente) {
+  public void aplicar(Docente docente, Grupo grupo) {
     grupo.aplicarAlta(estudiante);
   }
 }

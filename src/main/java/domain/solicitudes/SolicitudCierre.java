@@ -7,15 +7,13 @@ import java.util.Objects;
 
 public class SolicitudCierre extends Solicitud {
   Docente docenteSolicitante;
-  Grupo grupo;
 
-  public SolicitudCierre(Docente docenteSolicitante, Grupo grupo) {
+  public SolicitudCierre(Docente docenteSolicitante) {
     this.docenteSolicitante = docenteSolicitante;
-    this.grupo = grupo;
   }
 
   @Override
-  public void aplicar(Docente docente) {
+  public void aplicar(Docente docente, Grupo grupo) {
     if (Objects.equals(docente.email, docenteSolicitante.email)) {
       throw new IllegalStateException("El docente solicitante no puede cerrar el grupo");
     }
