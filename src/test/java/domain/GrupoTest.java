@@ -2,9 +2,6 @@ package domain;
 
 import domain.adapters.EnviadorDeMails;
 import domain.adapters.Guitab;
-import domain.solicitudes.Solicitud;
-import domain.solicitudes.SolicitudAlta;
-import domain.solicitudes.SolicitudBaja;
 import domain.solicitudes.SolicitudCierre;
 import domain.tareas.AdministradorDeRepositorios;
 import domain.tareas.NotificadorDeCambios;
